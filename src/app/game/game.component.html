@@ -1,0 +1,18 @@
+<div class="details">
+  Current Player : <span [ngStyle]="{color:currentPlayer.color}">{{currentPlayer.name}}</span>
+</div>
+<div class="container">
+  <div [ngStyle]="{color:player1.color}" class="side">
+    {{player1.name}}
+  </div>
+  <div class="grid" [ngStyle]="{'border-color':currentPlayer}">
+    <div class="row" *ngFor="let row of gameData; let i=index">
+      <div *ngFor="let cell of row; let j= index" class="cell" (click)="click(i,j)">
+        <span class="ball-img" [ngStyle]="getImageStyle(cell)" alt=""></span>
+      </div>
+    </div>
+  </div>
+  <div [ngStyle]="{color:player2.color}" class="side">
+    {{player2.name}}
+  </div>
+</div>
