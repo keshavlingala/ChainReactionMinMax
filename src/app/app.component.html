@@ -1,23 +1,16 @@
 <div class="view">
-  <mat-toolbar color="primary">
+  <mat-toolbar color="accent">
     <mat-toolbar-row>
-      <span>Chain Reaction</span>
+      <img src="assets/atom.svg" style="width: 50px;height: 50px;margin-right: 20px;" alt="Logo">
+      <span style="font-size: 1.2rem; font-weight: bold">Chain Reaction with AI</span>
       <span class="flex-fill"></span>
       <button mat-icon-button [matMenuTriggerFor]="menu">
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item>
-          <mat-icon>dialpad</mat-icon>
-          <span>Redial</span>
-        </button>
-        <button mat-menu-item disabled>
-          <mat-icon>voicemail</mat-icon>
-          <span>Check voicemail</span>
-        </button>
-        <button mat-menu-item>
-          <mat-icon>notifications_off</mat-icon>
-          <span>Disable alerts</span>
+        <button (click)="gameService.game.reset()" mat-menu-item>
+          <mat-icon>restart_alt</mat-icon>
+          <span>Reset Game</span>
         </button>
       </mat-menu>
     </mat-toolbar-row>

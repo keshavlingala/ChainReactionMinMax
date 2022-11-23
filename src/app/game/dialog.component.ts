@@ -1,6 +1,7 @@
 import {Component, Inject} from "@angular/core";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {IPlayer} from "../models/models";
 
 @Component({
   selector: 'app-dialog',
@@ -12,8 +13,8 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
           <mat-form-field appearance="outline">
             <mat-label>P1 Type</mat-label>
             <mat-select formControlName="player1Type" id="">
-              <mat-option value="human">Human</mat-option>
-              <mat-option value="minMax">MinMax</mat-option>
+              <mat-option value="Human">Human</mat-option>
+              <mat-option value="MinMax">MinMax</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline">
@@ -23,8 +24,8 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
           <mat-form-field appearance="outline">
             <mat-label>P2 Type</mat-label>
             <mat-select formControlName="player2Type" id="">
-              <mat-option value="human">Human</mat-option>
-              <mat-option value="human">MinMax</mat-option>
+              <mat-option value="Human">Human</mat-option>
+              <mat-option value="MinMax">MinMax</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline">
@@ -35,7 +36,7 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
             <div>
               <label>Playground Size: {{gameConfig.get('playgroundSize')?.value}}</label>
             </div>
-            <mat-slider min="0" max="10" step="1" showTickMarks discrete>
+            <mat-slider min="3" max="10" step="1" showTickMarks discrete>
               <input matSliderThumb name="playgroundSize" formControlName="playgroundSize">
             </mat-slider>
           </div>
@@ -61,7 +62,6 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
 
     .container {
       padding: 10px;
-      width: 400px;
     }
 
     .playground {

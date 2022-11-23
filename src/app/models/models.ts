@@ -18,3 +18,27 @@ export const dotsAssets = {
     './assets/secondary3.svg',
   ]
 }
+
+export interface IGame {
+  color: string;
+  value: number;
+}
+
+export enum PlayerType {
+  Human = 'Human',
+  MinMax = 'MinMax',
+}
+
+export interface IPlayer {
+  name: string;
+  color: Color;
+  playerType: PlayerType;
+}
+
+
+export interface GameConfig {
+  player1: IPlayer;
+  player2: IPlayer,
+  playgroundSize: number
+}
+
