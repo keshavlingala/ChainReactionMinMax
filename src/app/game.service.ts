@@ -11,42 +11,35 @@ import {ChainReaction} from "./ChainReaction/ChainReaction";
   providedIn: 'root'
 })
 export class GameService implements OnInit {
-  game: ChainReaction = new ChainReaction({
-    player1: {
-      name: 'Player 1',
-      color: Color.Primary,
-      playerType: PlayerType.Human
-    },
-    player2: {
-      name: 'Player 2',
-      color: Color.Secondary,
-      playerType: PlayerType.Human
-    },
-    playgroundSize: 3
-  }, this.getBlast, this.getErrorAudio);
+  game!: ChainReaction;
   gameOver!: Observable<boolean>;
-  blinker = this.game.blinker.asObservable();
 
-  constructor(private dialog: MatDialog) {
-    this.blinker.subscribe(this.blinkerSubscriber);
+  constructor(public dialog: MatDialog) {
+
   }
 
-  private get getBlast() {
-    const audio = new Audio('assets/click.wav');
-    audio.playbackRate = 2;
-    return audio;
-  }
-
-  private get getErrorAudio() {
-    return new Audio('assets/error.wav');
+  get blinker() {
+    return this.game.blinker;
   }
 
   ngOnInit() {
-    let config: GameConfig;
+    let config: GameConfig = {
+      player1: {
+        name: 'Player 1',
+        color: Color.Primary,
+        playerType: PlayerType.Human
+      },
+      player2: {
+        name: 'Player 2',
+        color: Color.Secondary,
+        playerType: PlayerType.MinMax
+      },
+      playgroundSize: 3
+    };
     this.dialog.open(DialogComponent)
       .afterClosed()
       .subscribe(result => {
-        console.log(result);
+        // Configuring Game here
         if (result) {
           config = {
             player1: {
@@ -61,11 +54,15 @@ export class GameService implements OnInit {
             },
             playgroundSize: result.playgroundSize
           }
-          this.game = new ChainReaction(config, this.getBlast, this.getErrorAudio);
+          this.game = new ChainReaction(config);
+        } else {
+          this.game = new ChainReaction(config);
         }
+        // Setting Game Over Events
         this.gameOver = this.game.isOver();
-        this.gameOver.subscribe(result => {
+        this.gameOver.subscribe((result) => {
           console.log('game over', result);
+          console.log('dialog', this.dialog);
           if (result) {
             this.dialog.open(GameOverComponent, {
               data: this.game.currentPlayer.color == Color.Primary ? this.game.player2.name : this.game.player1.name
@@ -75,13 +72,17 @@ export class GameService implements OnInit {
             });
           }
         });
-        this.blinker= this.game.blinker.asObservable();
-        this.blinker.subscribe(this.blinkerSubscriber);
+
+        // Setting Game Players
+        if (config.player1.playerType == PlayerType.MinMax) {
+          console.log('decided and clicked by minmax player 1');
+        }
+        if (config.player2.playerType == PlayerType.MinMax) {
+          console.log('decided and clicked by minmax player 2');
+        }
       });
 
   }
 
-  private blinkerSubscriber(result: Set<string>) {
-    console.log('blinker', result);
-  }
+
 }

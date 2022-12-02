@@ -23,9 +23,10 @@ export class ChainReaction {
   clickAudio: HTMLAudioElement;
   errorAudio: HTMLAudioElement;
 
-  constructor(config: GameConfig, clickAudio: HTMLAudioElement, errorAudio: HTMLAudioElement) {
-    this.clickAudio = clickAudio;
-    this.errorAudio = errorAudio;
+  constructor(config: GameConfig) {
+    this.clickAudio = new Audio('assets/click.wav');
+    this.clickAudio.playbackRate = 2;
+    this.errorAudio = new Audio('assets/error.wav');
     this.player1 = config.player1;
     this.player2 = config.player2
     this.currentPlayer = this.player1
@@ -42,6 +43,10 @@ export class ChainReaction {
     return this.isGameOver.asObservable();
   }
 
+  isTerminal(): boolean {
+    return this.isGameOver.value;
+  }
+
   public click(x: number, y: number, delayed = false) {
     if (this.gameData[x][y].value == 0 || this.gameData[x][y].color == this.currentPlayer.color || this.gameData[x][y].color == Color.Gray) {
       this.increment(x, y, this.currentPlayer.color, delayed);
@@ -53,7 +58,7 @@ export class ChainReaction {
     return this;
   }
 
-  public getAccessibleCells(x: number, y: number) {
+  private getAccessibleCells(x: number, y: number) {
     let cells = [];
     if (x > 0) {
       cells.push({x: x - 1, y: y});
@@ -70,7 +75,7 @@ export class ChainReaction {
     return cells;
   }
 
-  public getAsset(cell: IGame): string {
+  private getAsset(cell: IGame): string {
     if (cell.color == Color.Primary) {
       return dotsAssets.primary[cell.value];
     } else if (cell.color == Color.Secondary) {
@@ -103,7 +108,7 @@ export class ChainReaction {
     this.started[Color.Secondary] = false;
   }
 
-  async increment(x: number, y: number, color: Color, delayed = false) {
+  private async increment(x: number, y: number, color: Color, delayed = false) {
     if (this.gameOver()) {
       if (!this.isGameOver.value) {
         this.isGameOver.next(true);
@@ -124,7 +129,6 @@ export class ChainReaction {
         for (let cell of this.getAccessibleCells(x, y)) {
           this.increment(cell.x, cell.y, color);
         }
-
       }
     }
     if (typeOfCell == 'side') {
@@ -161,7 +165,7 @@ export class ChainReaction {
     }, 1000);
   }
 
-  public getTypeOfCell(row: number, col: number) {
+  private getTypeOfCell(row: number, col: number) {
     let sideX = row == 0 || row == this.rows - 1;
     let sideY = col == 0 || col == this.cols - 1;
     if (sideX && sideY) {
@@ -173,7 +177,7 @@ export class ChainReaction {
     return 'center';
   }
 
-  public gameOver() {
+  private gameOver() {
     let set = new Set(this.gameData.flat(1).map(i => i.color).filter(v => v != Color.Gray));
     return set.size == 1 && this.started[Color.Primary] && this.started[Color.Secondary];
   }
