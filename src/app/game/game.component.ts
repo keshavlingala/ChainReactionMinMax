@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import {MatDialog} from "@angular/material/dialog";
-import {animate, state, style, transition, trigger} from "@angular/animations";
 import {GameService} from "../game.service";
 
 
@@ -20,4 +19,8 @@ export class GameComponent implements OnInit {
   }
 
 
+  async askForBestMove() {
+    const move = await this.gameService.game.hint()
+    console.log("Best Move", move)
+  }
 }

@@ -33,6 +33,7 @@ export interface IPlayer {
   name: string;
   color: Color;
   playerType: PlayerType;
+  started?: boolean;
 }
 
 
@@ -42,3 +43,11 @@ export interface GameConfig {
   playgroundSize: number
 }
 
+export interface ChainReactionMin {
+  gameData: IGame[][];
+  currentPlayer: IPlayer
+  player1: IPlayer
+  player2: IPlayer
+  rows: number
+  cols: number
+}

@@ -110,7 +110,7 @@
   height: 25px;
   transition: background-image 500ms;
   background-repeat: no-repeat;
-  animation: shake 0.5s infinite, rotate360 2s infinite linear;
+  animation: rotate360 2s infinite linear;
 }
 
 .translateX {
@@ -128,7 +128,8 @@
 .translate-Y {
   transform: translateY(-100px);
 }
-.scores{
+
+.scores {
   display: flex;
   justify-content: space-between;
   width: 100%;

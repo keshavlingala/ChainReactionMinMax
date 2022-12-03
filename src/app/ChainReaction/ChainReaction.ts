@@ -1,17 +1,14 @@
-import {Color, dotsAssets, GameConfig, IGame, IPlayer} from "../models/models";
+import {ChainReactionMin, Color, dotsAssets, GameConfig, IGame, IPlayer} from "../models/models";
 import {BehaviorSubject, Observable} from "rxjs";
+import {IAction, MiniMax} from "./MiniMax";
 
-var audio = new Audio('audio_file.mp3');
-audio.play();
+
+// var audio = new Audio('audio_file.mp3');
+// audio.play();
 
 export class ChainReaction {
   rows: number = 3;
   cols: number = 3;
-  started: { [key in Color]: boolean } = {
-    '#00bcd4': false,
-    '#263238': false,
-    '#9e9e9e': false
-  }
   player1: IPlayer;
   player2: IPlayer;
   currentPlayer: IPlayer;
@@ -20,13 +17,15 @@ export class ChainReaction {
   }));
   blinker = new BehaviorSubject<Set<string>>(new Set(''));
   isGameOver = new BehaviorSubject(false);
-  clickAudio: HTMLAudioElement;
-  errorAudio: HTMLAudioElement;
+  // clickAudio: HTMLAudioElement;
+  // errorAudio: HTMLAudioElement;
+  config: GameConfig;
 
   constructor(config: GameConfig) {
-    this.clickAudio = new Audio('assets/click.wav');
-    this.clickAudio.playbackRate = 2;
-    this.errorAudio = new Audio('assets/error.wav');
+    this.config = config;
+    // this.clickAudio = new Audio('assets/click.wav');
+    // this.clickAudio.playbackRate = 2;
+    // this.errorAudio = new Audio('assets/error.wav');
     this.player1 = config.player1;
     this.player2 = config.player2
     this.currentPlayer = this.player1
@@ -39,6 +38,17 @@ export class ChainReaction {
     return this;
   }
 
+  gameStateCopy(): ChainReactionMin {
+    return {
+      gameData: JSON.parse(JSON.stringify(this.gameData)),
+      currentPlayer: JSON.parse(JSON.stringify(this.currentPlayer)),
+      player1: JSON.parse(JSON.stringify(this.player1)),
+      player2: JSON.parse(JSON.stringify(this.player2)),
+      rows: this.rows,
+      cols: this.cols
+    }
+  }
+
   isOver(): Observable<boolean> {
     return this.isGameOver.asObservable();
   }
@@ -47,15 +57,43 @@ export class ChainReaction {
     return this.isGameOver.value;
   }
 
-  public click(x: number, y: number, delayed = false) {
+  public async click(x: number, y: number, delayed = false) {
     if (this.gameData[x][y].value == 0 || this.gameData[x][y].color == this.currentPlayer.color || this.gameData[x][y].color == Color.Gray) {
-      this.increment(x, y, this.currentPlayer.color, delayed);
+      await this.increment(x, y, this.currentPlayer.color, delayed);
       this.currentPlayer = this.currentPlayer == this.player1 ? this.player2 : this.player1;
     } else {
-      this.errorAudio.play();
+      // await this.errorAudio.play();
     }
-    this.started[this.currentPlayer.color] = true;
+    this.currentPlayer.started = true;
     return this;
+  }
+
+  public getImageStyle(cell: IGame) {
+    return {
+      'background-image': `url(${this.getAsset(cell)})`,
+    }
+  }
+
+  public getScore(number: number) {
+    return [
+      this.gameData.flat(1).filter(v => v.value > 0 && v.color == Color.Primary).reduce((v, c) => v + c.value, 0),
+      this.gameData.flat(1).filter(v => v.value > 0 && v.color == Color.Secondary).reduce((v, c) => v + c.value, 0),
+    ][number];
+  }
+
+  public reset() {
+    console.log('reset')
+    this.gameData = this.gameData.map(row => row.map(cell => {
+      return {color: Color.Gray, value: 0}
+    }));
+    this.isGameOver.next(false);
+    this.player1.started = false;
+    this.player2.started = false;
+  }
+
+  hint(): Promise<IAction> {
+    const miniMax = new MiniMax(this.config);
+    return miniMax.getBestAction(this.gameStateCopy(), 3);
   }
 
   private getAccessibleCells(x: number, y: number) {
@@ -85,34 +123,9 @@ export class ChainReaction {
     }
   }
 
-  public getImageStyle(cell: IGame) {
-    return {
-      'background-image': `url(${this.getAsset(cell)})`,
-    }
-  }
-
-  public getScore(number: number) {
-    return [
-      this.gameData.flat(1).filter(v => v.value > 0 && v.color == Color.Primary).reduce((v, c) => v + c.value, 0),
-      this.gameData.flat(1).filter(v => v.value > 0 && v.color == Color.Secondary).reduce((v, c) => v + c.value, 0),
-    ][number];
-  }
-
-  public reset() {
-    console.log('reset')
-    this.gameData = this.gameData.map(row => row.map(cell => {
-      return {color: Color.Gray, value: 0}
-    }));
-    this.isGameOver.next(false);
-    this.started[Color.Primary] = false;
-    this.started[Color.Secondary] = false;
-  }
-
   private async increment(x: number, y: number, color: Color, delayed = false) {
-    if (this.gameOver()) {
-      if (!this.isGameOver.value) {
-        this.isGameOver.next(true);
-      }
+    if (this.gameOver() && !this.isGameOver.value) {
+      this.isGameOver.next(true);
       return;
     }
     this.blinker.next(this.blinker.value.add(`${x}-${y}`));
@@ -123,7 +136,7 @@ export class ChainReaction {
       if (this.gameData[x][y].value >= 2) {
         this.gameData[x][y].value = 0;
         if (delayed) {
-          this.clickAudio.play()
+          // this.clickAudio.play()
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         for (let cell of this.getAccessibleCells(x, y)) {
@@ -137,7 +150,7 @@ export class ChainReaction {
       if (this.gameData[x][y].value >= 3) {
         this.gameData[x][y].value = 0;
         if (delayed) {
-          this.clickAudio.play()
+          // this.clickAudio.play()
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         for (let cell of this.getAccessibleCells(x, y)) {
@@ -151,7 +164,7 @@ export class ChainReaction {
       if (this.gameData[x][y].value >= 4) {
         this.gameData[x][y].value = 0;
         if (delayed) {
-          this.clickAudio.play()
+          // this.clickAudio.play()
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         for (let cell of this.getAccessibleCells(x, y)) {
@@ -163,6 +176,9 @@ export class ChainReaction {
       this.blinker.value.delete(`${x}-${y}`)
       this.blinker.next(this.blinker.value);
     }, 1000);
+    if (this.gameOver() && !this.isGameOver.value) {
+      this.isGameOver.next(true);
+    }
   }
 
   private getTypeOfCell(row: number, col: number) {
@@ -179,6 +195,6 @@ export class ChainReaction {
 
   private gameOver() {
     let set = new Set(this.gameData.flat(1).map(i => i.color).filter(v => v != Color.Gray));
-    return set.size == 1 && this.started[Color.Primary] && this.started[Color.Secondary];
+    return set.size == 1 && this.player1.started && this.player2.started;
   }
 }

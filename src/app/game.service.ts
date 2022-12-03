@@ -27,12 +27,12 @@ export class GameService implements OnInit {
       player1: {
         name: 'Player 1',
         color: Color.Primary,
-        playerType: PlayerType.Human
+        playerType: PlayerType.Human,
       },
       player2: {
         name: 'Player 2',
         color: Color.Secondary,
-        playerType: PlayerType.MinMax
+        playerType: PlayerType.MinMax,
       },
       playgroundSize: 3
     };
@@ -45,7 +45,7 @@ export class GameService implements OnInit {
             player1: {
               name: result.player1,
               color: Color.Primary,
-              playerType: result.player1Type
+              playerType: result.player1Type,
             },
             player2: {
               name: result.player2,
@@ -65,7 +65,7 @@ export class GameService implements OnInit {
           console.log('dialog', this.dialog);
           if (result) {
             this.dialog.open(GameOverComponent, {
-              data: this.game.currentPlayer.color == Color.Primary ? this.game.player2.name : this.game.player1.name
+              data: this.game.currentPlayer,
             }).afterClosed().subscribe(result => {
               this.game.reset();
               this.ngOnInit();

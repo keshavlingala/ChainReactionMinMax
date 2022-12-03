@@ -1,24 +1,24 @@
-
-  <div *ngIf="gameService.game" class="details">
-    <div class="scores">
-      <div [ngStyle]="{color:gameService.game.player1.color}" class="side">
-        {{gameService.game.player1.name}} : {{gameService.game.getScore(0)}}
-      </div>
-      <div [ngStyle]="{color:gameService.game.player2.color}" class="side">
-        {{gameService.game.player2.name}} : {{gameService.game.getScore(1)}}
+<div *ngIf="gameService.game" class="details">
+  <div class="scores">
+    <div [ngStyle]="{color:gameService.game.player1.color}" class="side">
+      {{gameService.game.player1.name}} : {{gameService.game.getScore(0)}}
+    </div>
+    <div [ngStyle]="{color:gameService.game.player2.color}" class="side">
+      {{gameService.game.player2.name}} : {{gameService.game.getScore(1)}}
+    </div>
+  </div>
+  <button mat-raised-button (click)="askForBestMove()">Hint</button>
+</div>
+<div *ngIf="gameService.game && (gameService.game.blinker | async) as blinker" class="container">
+  <div class="grid">
+    <div class="row" *ngFor="let row of gameService.game.gameData; let i=index">
+      <div *ngFor="let cell of row; let j= index" class="cell"
+           [ngStyle]="{'border-color':gameService.game.currentPlayer.color, 'background-color':blinker.has(i+'-'+j)?cell.color:'transparent'}"
+           (click)="gameService.game.click(i,j,true)">
+        <span class="ball-img" [ngStyle]="gameService.game.getImageStyle(cell)" alt=""></span>
       </div>
     </div>
   </div>
-  <div *ngIf="gameService.game && (gameService.game.blinker | async) as blinker" class="container">
-    <div class="grid">
-      <div class="row" *ngFor="let row of gameService.game.gameData; let i=index">
-        <div *ngFor="let cell of row; let j= index" class="cell"
-             [ngStyle]="{'border-color':gameService.game.currentPlayer.color, 'background-color':blinker.has(i+'-'+j)?cell.color:'transparent'}"
-             (click)="gameService.game.click(i,j,true)">
-          <span class="ball-img" [ngStyle]="gameService.game.getImageStyle(cell)" alt=""></span>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>
 
 
