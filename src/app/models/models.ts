@@ -1,3 +1,5 @@
+import {IAction} from "../ChainReaction/MiniMax";
+
 export enum Color {
   Primary = '#00bcd4',
   Secondary = '#263238',
@@ -50,4 +52,8 @@ export interface ChainReactionMin {
   player2: IPlayer
   rows: number
   cols: number
+}
+export interface BestAction{
+  action:IAction,
+  score:number
 }

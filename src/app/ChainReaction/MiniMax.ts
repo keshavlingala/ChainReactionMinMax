@@ -1,4 +1,4 @@
-import {ChainReactionMin, Color, GameConfig} from "../models/models";
+import {BestAction, ChainReactionMin, Color, GameConfig} from "../models/models";
 import {ChainReaction} from "./ChainReaction";
 
 export interface IAction {
@@ -6,12 +6,19 @@ export interface IAction {
   j: number;
 }
 
+
 export class Node {
   state: ChainReactionMin;
+  children: Node[] = [];
+  isMaxPlayer = false;
+  lastAction: IAction;
+  level = 0;
 
-  constructor(gameState: ChainReactionMin) {
+  constructor(gameState: ChainReactionMin, lastAction: IAction) {
     this.state = gameState
+    this.lastAction = lastAction;
   }
+
 
   isTerminal(): boolean {
     let set = new Set(this.state.gameData.flat(1).map(i => i.color).filter(v => v != Color.Gray));
@@ -32,18 +39,8 @@ export class Node {
     return actions;
   }
 
-  getHeuristicValue(): number {
-    let own = 0;
-    let opponent = 0;
-    this.state.gameData.flat(1)
-      .filter(v => v.color != Color.Gray).forEach(cell => {
-      if (cell.color == this.state.currentPlayer.color) {
-        own += cell.value;
-      } else {
-        opponent += cell.value;
-      }
-    })
-    return own;
+  public getScore(color: Color) {
+    return this.state.gameData.flat(1).filter(v => v.value > 0 && v.color == color).reduce((v, c) => v + c.value, 0)
   }
 
   public print() {
@@ -51,75 +48,62 @@ export class Node {
     this.state.gameData.forEach(row => {
       matrixString += row.map(cell => '%c ' + cell.value).join(' ') + '\n'
     })
-    console.log(...[matrixString, ...this.state.gameData.flat(1).map(cell => `color: ${cell.color}`)])
+    console.log(...[matrixString, ...this.state.gameData.flat(1).map(cell => `color: ${cell.color}`)],
+      'level:', this.level, this.isMaxPlayer ? 'max' : 'min', this.lastAction.i + '-' + this.lastAction.j)
   }
+
 }
 
 export class MiniMax {
   config!: GameConfig;
+  root: Node;
+  treeDepth: number;
+  maxColor: Color;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, gameState: ChainReactionMin, difficulty = 3,) {
     this.config = config;
+    this.root = new Node(gameState, {i: -1, j: -1});
+    this.root.isMaxPlayer = true
+    this.root.level = 0;
+    this.treeDepth = difficulty;
+    this.maxColor = gameState.currentPlayer.color;
   }
 
-  async getBestAction(game: ChainReactionMin, difficulty: number): Promise<IAction> {
-    console.log({game})
-    const node = new Node(game);
-    console.log('getBestAction current state');
-    node.print();
-    let bestValue = -Infinity;
-    let bestAction: IAction = {i: 0, j: 0};
-    for (let action of node.getAvailableActions()) {
-      console.log('when action max player', action, 'on', node);
-      let child = await this.action(action, node);
-      child.print()
-      console.log('child heuristic', child.getHeuristicValue(), child.isTerminal())
-      let value = await this.minimax(child, difficulty - 1, -Infinity, Infinity, false);
-      if (value > bestValue) {
-        bestValue = value;
-        bestAction = action;
-      }
-    }
-    console.log('bestValue', bestValue, 'bestAction', bestAction);
-    console.log('root', node);
-    return bestAction;
+  async getBestMove(): Promise<BestAction> {
+    await this.constructTree()
+    return this.miniMax(this.root);
   }
 
-  async minimax(node: Node, depth: number, alpha: number, beta: number, maximizingPlayer: boolean): Promise<number> {
-    if (depth == 0 || node.isTerminal()) {
-      if (node.isTerminal()) {
-        return maximizingPlayer ? Infinity : -Infinity;
-      }
-      return node.getHeuristicValue();
-    }
+  getHeuristic(node: Node): number {
+    let score = node.getScore(this.maxColor);
+    let opponentScore = node.getScore(this.maxColor == Color.Primary ? Color.Secondary : Color.Primary);
+    return score - opponentScore;
+  }
 
-    // node.print();
-    if (maximizingPlayer) {
-      let value = -Infinity;
-      for (let action of node.getAvailableActions()) {
-        console.log('when action max player', action);
-        let child = await this.action(action, node);
-        child.print();
-        value = Math.max(value, await this.minimax(child, depth - 1, alpha, beta, false));
-        alpha = Math.max(alpha, value);
-        if (beta <= alpha) {
-          break;
-        }
+  // construct minmax with alpha beta pruning tree with depth = treeDepth
+  async constructTree(): Promise<void> {
+    let queue = [this.root];
+    while (queue.length > 0) {
+      let node = queue.shift()!;
+      console.log('level', node.level, 'isMaxLevel', node.isMaxPlayer);
+      node.print()
+      console.log('heuristic', this.getHeuristic(node));
+      if (node.level == this.treeDepth) {
+        continue;
       }
-      return value;
-    } else {
-      let value = Infinity;
-      for (let action of node.getAvailableActions()) {
-        console.log('when action min player', action);
+      let actions = node.getAvailableActions();
+      for (let action of actions) {
         let child = await this.action(action, node);
-        child.print();
-        value = Math.min(value, await this.minimax(child, depth - 1, alpha, beta, true));
-        beta = Math.min(beta, value);
-        if (beta <= alpha) {
-          break;
-        }
+        child.isMaxPlayer = !node.isMaxPlayer;
+        child.level = node.level + 1;
+        node.children.push(child);
+        queue.push(child);
       }
-      return value;
+      console.log('children', node.children.length);
+      node.children.forEach(child => {
+        child.print();
+        console.log('score', this.getHeuristic(child));
+      })
     }
   }
 
@@ -133,6 +117,41 @@ export class MiniMax {
     newGame.rows = node.state.rows;
     newGame.cols = node.state.cols;
     await newGame.click(action.i, action.j, false);
-    return new Node(newGame);
+    return new Node(newGame, action);
+  }
+
+  miniMax(node: Node): BestAction {
+    if (node.children.length == 0) {
+      return {
+        action: node.lastAction,
+        score: this.getHeuristic(node)
+      }
+    }
+    let bestAction: BestAction = {
+      action: node.lastAction,
+      score: node.isMaxPlayer ? -Infinity : Infinity
+    }
+    for (let child of node.children) {
+      let action = this.miniMax(child);
+      if (node.isMaxPlayer) {
+        if (action.score > bestAction.score) {
+          bestAction = action;
+        }
+      } else {
+        if (action.score < bestAction.score) {
+          bestAction = action;
+        }
+      }
+    }
+    return bestAction;
+  }
+
+  print() {
+    let queue = [this.root];
+    while (queue.length > 0) {
+      let node = queue.shift()!;
+      node.print();
+      queue.push(...node.children);
+    }
   }
 }

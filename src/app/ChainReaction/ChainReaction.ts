@@ -1,6 +1,6 @@
-import {ChainReactionMin, Color, dotsAssets, GameConfig, IGame, IPlayer} from "../models/models";
+import {BestAction, ChainReactionMin, Color, dotsAssets, GameConfig, IGame, IPlayer} from "../models/models";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IAction, MiniMax} from "./MiniMax";
+import {MiniMax} from "./MiniMax";
 
 
 // var audio = new Audio('audio_file.mp3');
@@ -91,9 +91,9 @@ export class ChainReaction {
     this.player2.started = false;
   }
 
-  hint(): Promise<IAction> {
-    const miniMax = new MiniMax(this.config);
-    return miniMax.getBestAction(this.gameStateCopy(), 3);
+  hint(): Promise<BestAction> {
+    const miniMax = new MiniMax(this.config, this.gameStateCopy());
+    return miniMax.getBestMove();
   }
 
   private getAccessibleCells(x: number, y: number) {
