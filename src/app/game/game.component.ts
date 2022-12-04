@@ -22,5 +22,7 @@ export class GameComponent implements OnInit {
   async askForBestMove() {
     const bestMove = await this.gameService.game.hint()
     console.log('best Move', bestMove);
+    await this.gameService.game.click(bestMove.i, bestMove.j, true);
+    this.gameService.game.logCount();
   }
 }

@@ -1,6 +1,6 @@
-import {BestAction, ChainReactionMin, Color, dotsAssets, GameConfig, IGame, IPlayer} from "../models/models";
+import {ChainReactionMin, Color, dotsAssets, GameConfig, IGame, IPlayer} from "../models/models";
 import {BehaviorSubject, Observable} from "rxjs";
-import {MiniMax} from "./MiniMax";
+import {IAction, MiniMax} from "./MiniMax";
 
 
 // var audio = new Audio('audio_file.mp3');
@@ -20,6 +20,7 @@ export class ChainReaction {
   // clickAudio: HTMLAudioElement;
   // errorAudio: HTMLAudioElement;
   config: GameConfig;
+  count = 0;
 
   constructor(config: GameConfig) {
     this.config = config;
@@ -91,9 +92,13 @@ export class ChainReaction {
     this.player2.started = false;
   }
 
-  hint(): Promise<BestAction> {
+  hint(): Promise<IAction> {
     const miniMax = new MiniMax(this.config, this.gameStateCopy());
-    return miniMax.getBestMove();
+    return miniMax.bestAction();
+  }
+
+  logCount() {
+    console.log(this.count);
   }
 
   private getAccessibleCells(x: number, y: number) {
@@ -124,8 +129,13 @@ export class ChainReaction {
   }
 
   private async increment(x: number, y: number, color: Color, delayed = false) {
-    if (this.gameOver() && !this.isGameOver.value) {
-      this.isGameOver.next(true);
+    this.count++;
+    if(this.count > 10000) {
+      debugger;
+    }
+    if (this.gameOver()) {
+      if(!this.isGameOver.value)
+        this.isGameOver.next(true);
       return;
     }
     this.blinker.next(this.blinker.value.add(`${x}-${y}`));
@@ -140,7 +150,7 @@ export class ChainReaction {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         for (let cell of this.getAccessibleCells(x, y)) {
-          this.increment(cell.x, cell.y, color);
+          await this.increment(cell.x, cell.y, color);
         }
       }
     }
@@ -154,7 +164,7 @@ export class ChainReaction {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         for (let cell of this.getAccessibleCells(x, y)) {
-          this.increment(cell.x, cell.y, color);
+          await this.increment(cell.x, cell.y, color);
         }
       }
     }
@@ -168,7 +178,7 @@ export class ChainReaction {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         for (let cell of this.getAccessibleCells(x, y)) {
-          this.increment(cell.x, cell.y, color);
+          await this.increment(cell.x, cell.y, color);
         }
       }
     }
@@ -176,9 +186,6 @@ export class ChainReaction {
       this.blinker.value.delete(`${x}-${y}`)
       this.blinker.next(this.blinker.value);
     }, 1000);
-    if (this.gameOver() && !this.isGameOver.value) {
-      this.isGameOver.next(true);
-    }
   }
 
   private getTypeOfCell(row: number, col: number) {
@@ -194,7 +201,7 @@ export class ChainReaction {
   }
 
   private gameOver() {
-    let set = new Set(this.gameData.flat(1).map(i => i.color).filter(v => v != Color.Gray));
-    return set.size == 1 && this.player1.started && this.player2.started;
+    let s = new Set(this.gameData.flat(1).map(i => i.color).filter(v => v != Color.Gray));
+    return s.size == 1 && this.player1.started && this.player2.started;
   }
 }
