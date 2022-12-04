@@ -61,8 +61,8 @@ export class GameService implements OnInit {
         // Setting Game Over Events
         this.gameOver = this.game.isOver();
         this.gameOver.subscribe((result) => {
-          console.log('game over', result);
-          console.log('dialog', this.dialog);
+          // console.log('game over', result);
+          // console.log('dialog', this.dialog);
           if (result) {
             this.dialog.open(GameOverComponent, {
               data: this.game.currentPlayer,
@@ -75,7 +75,7 @@ export class GameService implements OnInit {
 
         // Setting Game Players
         if (config.player1.playerType == PlayerType.MinMax) {
-          console.log('decided and clicked by minmax player 1');
+          // console.log('decided and clicked by minmax player 1');
         }
         if (config.player2.playerType == PlayerType.MinMax) {
           console.log('decided and clicked by minmax player 2');

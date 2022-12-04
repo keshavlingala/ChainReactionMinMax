@@ -7,7 +7,8 @@
       {{gameService.game.player2.name}} : {{gameService.game.getScore(1)}}
     </div>
   </div>
-  <button mat-raised-button (click)="askForBestMove()">Hint</button>
+  <button class="hint-button" mat-raised-button (click)="askForBestMove()">Move with MinMax</button>
+  <mat-progress-bar *ngIf="progressBar" mode="indeterminate"></mat-progress-bar>
 </div>
 <div *ngIf="gameService.game && (gameService.game.blinker | async) as blinker" class="container">
   <div class="grid">

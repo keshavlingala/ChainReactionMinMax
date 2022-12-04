@@ -9,6 +9,7 @@ import {GameService} from "../game.service";
   styleUrls: ['./game.component.scss'],
 })
 export class GameComponent implements OnInit {
+  progressBar:boolean = false;
 
   constructor(private dialog: MatDialog,
               public gameService: GameService) {
@@ -20,9 +21,11 @@ export class GameComponent implements OnInit {
 
 
   async askForBestMove() {
+    this.progressBar = true;
     const bestMove = await this.gameService.game.hint()
-    console.log('best Move', bestMove);
+    console.log('bestMove', bestMove);
     await this.gameService.game.click(bestMove.i, bestMove.j, true);
+    this.progressBar = false;
     this.gameService.game.logCount();
   }
 }

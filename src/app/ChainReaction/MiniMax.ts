@@ -6,6 +6,7 @@ export interface IAction {
   j: number;
 }
 
+const memorize = new Map<string, any>();
 
 export class Node {
   state: ChainReactionMin;
@@ -34,7 +35,7 @@ export class Node {
     this.state.gameData.forEach(row => {
       matrixString += row.map(cell => '%c ' + cell.value).join(' ') + '\n'
     })
-    console.log(...[matrixString, ...this.state.gameData.flat(1).map(cell => `color: ${cell.color}`)],'last action:',this.lastAction)
+    console.log(...[matrixString, ...this.state.gameData.flat(1).map(cell => `color: ${cell.color}`)], 'last action:', this.lastAction)
   }
 
 }
@@ -54,7 +55,12 @@ export class MiniMax {
     this.maxColor = gameState.currentPlayer.color;
   }
 
+  //memorize node and actions
   actions(node: Node): IAction[] {
+    let key = JSON.stringify(node);
+    if (memorize.has(key)) {
+      return memorize.get(key);
+    }
     let actions: { i: number, j: number }[] = [];
     for (let i = 0; i < node.state.rows; i++) {
       for (let j = 0; j < node.state.cols; j++) {
@@ -63,16 +69,25 @@ export class MiniMax {
         }
       }
     }
+    actions = actions.sort(() => Math.random() - 0.5);
+    memorize.set(key, actions);
     return actions;
   }
 
+  //memorize
   utility(node: Node): number {
+    let key = JSON.stringify(node);
+    if (memorize.has(key)) {
+      return memorize.get(key);
+    }
     if (node.isTerminal()) {
       return node.state.currentPlayer.color == this.maxColor ? Infinity : -Infinity;
     }
     const own = node.state.gameData.flat(1).filter(v => v.value > 0 && v.color == this.maxColor).reduce((v, c) => v + c.value, 0)
     const opponent = node.state.gameData.flat(1).filter(v => v.value > 0 && v.color != this.maxColor).reduce((v, c) => v + c.value, 0)
-    return own - opponent;
+    const value = own - opponent;
+    memorize.set(key, value);
+    return value;
   }
 
   // construct minmax with alpha beta pruning tree with depth = treeDepth
@@ -80,9 +95,9 @@ export class MiniMax {
     let queue = [this.root];
     while (queue.length > 0) {
       let node = queue.shift()!;
-      console.log('level', node.level, 'isMaxLevel', node.isMaxPlayer);
-      node.print()
-      console.log('heuristic', this.utility(node));
+      // console.log('level', node.level, 'isMaxLevel', node.isMaxPlayer);
+      // node.print()
+      // console.log('heuristic', this.utility(node));
       if (node.level == this.treeDepth) {
         continue;
       }
@@ -91,16 +106,15 @@ export class MiniMax {
         node.children.push(child);
         queue.push(child);
       }
-      console.log('children', node.children.length);
-      node.children.forEach(child => {
-        child.print();
-      })
+      // console.log('children', node.children.length);
     }
   }
 
-
+  // memorize
   async result(action: IAction, node: Node): Promise<Node> {
-    console.log('result', action);
+    let key = JSON.stringify(node) + JSON.stringify(action);
+    if (memorize.has(key)) return memorize.get(key);
+    // console.log('result', action);
     let newGame = new ChainReaction(this.config);
     newGame.gameData = JSON.parse(JSON.stringify(node.state.gameData));
     newGame.currentPlayer = JSON.parse(JSON.stringify(node.state.currentPlayer));
@@ -109,12 +123,18 @@ export class MiniMax {
     newGame.rows = node.state.rows;
     newGame.cols = node.state.cols;
     await newGame.click(action.i, action.j, false);
-    return new Node(newGame, !node.isMaxPlayer, node.level + 1, action);
+    let child = new Node(newGame, !node.isMaxPlayer, node.level + 1, action);
+    memorize.set(key, child);
+    return child;
   }
 
-  // return best action for current player
+  // memorize
   async bestAction(): Promise<IAction> {
-    console.log('best action');
+    let key = JSON.stringify(this.root);
+    if (memorize.has(key)) {
+      return memorize.get(key);
+    }
+    // console.log('best action');
     await this.constructTree();
     let bestAction: IAction = {i: -1, j: -1};
     let bestValue = -Infinity;
@@ -125,36 +145,48 @@ export class MiniMax {
         bestAction = child.lastAction;
       }
     }
-    console.log('best value', bestValue);
+    // console.log('best value', bestValue);
     if (bestAction.i == -1 && bestAction.j == -1) {
-      const availableMoves=this.actions(this.root)
-    //  return random move
-      return availableMoves[Math.floor(Math.random()*availableMoves.length)]
+      const availableMoves = this.actions(this.root)
+      //  return random move
+      return availableMoves[Math.floor(Math.random() * availableMoves.length)]
     }
+    memorize.set(key, bestAction);
     return bestAction;
   }
-
+  //memorize
   minValue(node: Node): number {
+    let key = JSON.stringify(node);
+    if (memorize.has(key)) {
+      return memorize.get(key);
+    }
     if (node.isTerminal() || node.level == this.treeDepth) {
       return this.utility(node);
     }
-    console.log('min value', node.level);
+    // console.log('min value', node.level);
     let value = Infinity;
     for (let child of node.children) {
       value = Math.min(value, this.maxValue(child));
     }
+    memorize.set(key, value);
     return value;
   }
 
+  // memorize
   maxValue(node: Node): number {
+    const key = JSON.stringify(node);
+    if(memorize.has(key)) {
+      return memorize.get(key);
+    }
     if (node.isTerminal() || node.level == this.treeDepth) {
       return this.utility(node);
     }
-    console.log('max value', node.level);
+    // console.log('max value', node.level);
     let value = -Infinity;
     for (let child of node.children) {
       value = Math.max(value, this.minValue(child));
     }
+    memorize.set(key, value);
     return value;
   }
 

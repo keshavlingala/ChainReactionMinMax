@@ -21,6 +21,7 @@ export class ChainReaction {
   // errorAudio: HTMLAudioElement;
   config: GameConfig;
   count = 0;
+  memorize = new Map<string, any>();
 
   constructor(config: GameConfig) {
     this.config = config;
@@ -83,7 +84,7 @@ export class ChainReaction {
   }
 
   public reset() {
-    console.log('reset')
+    // console.log('reset')
     this.gameData = this.gameData.map(row => row.map(cell => {
       return {color: Color.Gray, value: 0}
     }));
@@ -92,13 +93,21 @@ export class ChainReaction {
     this.player2.started = false;
   }
 
-  hint(): Promise<IAction> {
-    const miniMax = new MiniMax(this.config, this.gameStateCopy());
-    return miniMax.bestAction();
+  //memorize
+  async hint(): Promise<IAction> {
+    let state = this.gameStateCopy();
+    let key = JSON.stringify(state);
+    if (this.memorize.has(key)) {
+      return Promise.resolve(this.memorize.get(key));
+    }
+    const miniMax = new MiniMax(this.config, state);
+    const value = await miniMax.bestAction();
+    this.memorize.set(key, value);
+    return value;
   }
 
   logCount() {
-    console.log(this.count);
+    // console.log(this.count);
   }
 
   private getAccessibleCells(x: number, y: number) {
@@ -130,11 +139,11 @@ export class ChainReaction {
 
   private async increment(x: number, y: number, color: Color, delayed = false) {
     this.count++;
-    if(this.count > 10000) {
+    if (this.count > 10000) {
       debugger;
     }
     if (this.gameOver()) {
-      if(!this.isGameOver.value)
+      if (!this.isGameOver.value)
         this.isGameOver.next(true);
       return;
     }
