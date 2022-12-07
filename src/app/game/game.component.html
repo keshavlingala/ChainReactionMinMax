@@ -2,12 +2,20 @@
   <div class="scores">
     <div [ngStyle]="{color:gameService.game.player1.color}" class="side">
       {{gameService.game.player1.name}} : {{gameService.game.getScore(0)}}
+      <span>
+        <span [ngStyle]="{'background-color':gameService.game.player1.color}"
+              class="small-box">
+        </span>
+           {{gameService.game.player1.playerType}}</span>
+      <button  (click)="play2()" *ngIf="isFirstPlayer()" mat-raised-button color="primary">Make Move</button>
     </div>
     <div [ngStyle]="{color:gameService.game.player2.color}" class="side">
       {{gameService.game.player2.name}} : {{gameService.game.getScore(1)}}
+      <span><span [ngStyle]="{'background-color':gameService.game.player2.color}"
+                  class="small-box"></span>    {{gameService.game.player2.playerType}}</span>
+      <button (click)="play2()" *ngIf="isSecondPlayer()" mat-raised-button color="accent">Make Move</button>
     </div>
   </div>
-  <button class="hint-button" mat-raised-button (click)="askForBestMove()">Move with MinMax</button>
   <mat-progress-bar *ngIf="progressBar" mode="indeterminate"></mat-progress-bar>
 </div>
 <div *ngIf="gameService.game && (gameService.game.blinker | async) as blinker" class="container">

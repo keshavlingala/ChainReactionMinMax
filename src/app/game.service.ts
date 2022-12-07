@@ -1,8 +1,8 @@
 import {Injectable, OnInit} from '@angular/core';
 import {Color, GameConfig, PlayerType} from "./models/models";
 import {Observable} from "rxjs";
-import {GameOverComponent} from "./game/gameover.component";
-import {DialogComponent} from "./game/dialog.component";
+import {GameOverComponent} from "./game/dialog/gameover.component";
+import {DialogComponent} from "./game/dialog/dialog.component";
 import {MatDialog} from "@angular/material/dialog";
 import {ChainReaction} from "./ChainReaction/ChainReaction";
 

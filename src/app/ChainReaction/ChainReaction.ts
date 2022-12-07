@@ -67,6 +67,7 @@ export class ChainReaction {
       // await this.errorAudio.play();
     }
     this.currentPlayer.started = true;
+    this.checkGameOver();
     return this;
   }
 
@@ -110,6 +111,11 @@ export class ChainReaction {
     // console.log(this.count);
   }
 
+  checkGameOver() {
+    if (this.gameOver() && !this.isGameOver.value)
+      this.isGameOver.next(true);
+  }
+
   private getAccessibleCells(x: number, y: number) {
     let cells = [];
     if (x > 0) {
@@ -139,14 +145,11 @@ export class ChainReaction {
 
   private async increment(x: number, y: number, color: Color, delayed = false) {
     this.count++;
-    if (this.count > 10000) {
-      debugger;
-    }
-    if (this.gameOver()) {
-      if (!this.isGameOver.value)
-        this.isGameOver.next(true);
+    if (this.count > 50000) {
       return;
     }
+    if (this.gameOver()) return;
+
     this.blinker.next(this.blinker.value.add(`${x}-${y}`));
     let typeOfCell = this.getTypeOfCell(x, y);
     if (typeOfCell == 'corner') {
