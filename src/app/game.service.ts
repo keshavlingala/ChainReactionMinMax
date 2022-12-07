@@ -65,7 +65,7 @@ export class GameService implements OnInit {
           // console.log('dialog', this.dialog);
           if (result) {
             this.dialog.open(GameOverComponent, {
-              data: this.game.currentPlayer,
+              data: this.game,
             }).afterClosed().subscribe(result => {
               this.game.reset();
               this.ngOnInit();

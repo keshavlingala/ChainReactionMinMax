@@ -1,21 +1,21 @@
 import {Component, Inject} from "@angular/core";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {Color, IPlayer} from "../../models/models";
+import {ChainReaction} from "../../ChainReaction/ChainReaction";
 
 @Component({
   selector: 'app-game-over',
   template: `
-      <div class="container">
-          <h1 mat-dialog-title>Game Over</h1>
-          <div mat-dialog-content>
-              <p>Winner: {{winner.name}}</p>
-              <!--        <img class="winner-img" [src]="getWinnerAsset()" alt="">-->
-              <img src="/assets/congrats.gif" alt="">
-          </div>
-          <div mat-dialog-actions>
-              <button mat-raised-button color="primary" [mat-dialog-close]="true">Close</button>
-          </div>
+    <div class="container">
+      <h1 mat-dialog-title>Game Over</h1>
+      <div mat-dialog-content>
+        <p>{{getWinner().name}} is winner</p>
+        <!--        <img class="winner-img" [src]="getWinnerAsset()" alt="">-->
+        <img src="/assets/congrats.gif" alt="">
       </div>
+      <div mat-dialog-actions>
+        <button mat-raised-button color="primary" [mat-dialog-close]="true">Close</button>
+      </div>
+    </div>
   `,
   styles: [`
     .container {
@@ -38,10 +38,10 @@ import {Color, IPlayer} from "../../models/models";
 })
 export class GameOverComponent {
 
-  constructor(@Inject(MAT_DIALOG_DATA) public winner: IPlayer) {
+  constructor(@Inject(MAT_DIALOG_DATA) public game: ChainReaction) {
   }
 
-  getWinnerAsset() {
-    return this.winner.color === Color.Primary ? './assets/primary3.svg' : './assets/secondary3.svg';
+  getWinner() {
+    return this.game.getScore(0) > this.game.getScore(1) ? this.game.player1 : this.game.player2;
   }
 }
