@@ -1,6 +1,6 @@
-import {ChainReactionMin, Color, dotsAssets, GameConfig, IGame, IPlayer} from "../models/models";
+import {ChainReactionMin, Color, dotsAssets, GameConfig, IAction, IGame, IPlayer} from "../models/models";
 import {BehaviorSubject, Observable} from "rxjs";
-import {IAction, MiniMax} from "./MiniMax";
+import {MiniMax} from "./MiniMax";
 
 
 // var audio = new Audio('audio_file.mp3');

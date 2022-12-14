@@ -1,5 +1,7 @@
-import {IAction} from "../ChainReaction/MiniMax";
-
+export interface IAction {
+  i: number;
+  j: number;
+}
 export enum Color {
   Primary = '#00bcd4',
   Secondary = '#263238',

@@ -1,10 +1,6 @@
-import {ChainReactionMin, Color, GameConfig} from "../models/models";
+import {ChainReactionMin, Color, GameConfig, IAction} from "../models/models";
 import {ChainReaction} from "./ChainReaction";
 
-export interface IAction {
-  i: number;
-  j: number;
-}
 
 const memorize = new Map<string, any>();
 
@@ -154,6 +150,7 @@ export class MiniMax {
     memorize.set(key, bestAction);
     return bestAction;
   }
+
   //memorize
   minValue(node: Node): number {
     let key = JSON.stringify(node);
@@ -175,7 +172,7 @@ export class MiniMax {
   // memorize
   maxValue(node: Node): number {
     const key = JSON.stringify(node);
-    if(memorize.has(key)) {
+    if (memorize.has(key)) {
       return memorize.get(key);
     }
     if (node.isTerminal() || node.level == this.treeDepth) {
